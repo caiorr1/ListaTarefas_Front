@@ -97,5 +97,5 @@ const styles = StyleSheet.create({
   },
 });
 
-// exporta o componente ListaTarefas como padrão
+// exporta o componente ListaTarefas como padrã o
 export default ListaTarefas;
