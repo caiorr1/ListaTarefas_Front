@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-type RootStackParamList = {
-    Login: undefined;
-    Register: undefined;
-    Home: undefined;
-    ForgotPassword: undefined;
-};
+import { recuperarSenha } from '../auth/authService'; // Usa o serviço de recuperação de senha
 
 type ForgotPasswordScreenProps = {
-    navigation: NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>;
+  navigation: NativeStackNavigationProp<any>;
 };
 
 const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation }) => {
@@ -19,22 +13,25 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
 
   const handleResetPassword = async () => {
     if (!email) {
-      setErrorMessage('Por favor, preencha o campo de username');
+      setErrorMessage('Por favor, preencha o campo de e-mail');
       return;
     }
 
-    // Implementar a lógica de recuperação de senha aqui
-
-    setErrorMessage(null);
-    navigation.navigate('Login'); // Redirecionar após a recuperação de senha
+    try {
+      await recuperarSenha(email); // Chama o serviço de recuperação de senha
+      setErrorMessage(null);
+      navigation.navigate('Login'); // Redireciona para a tela de login
+    } catch (error) {
+      setErrorMessage('Erro ao tentar recuperar senha');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Forgot Password</Text>
-      <Text style={styles.subtitle}>Enter your email to reset your password.</Text>
+      <Text style={styles.title}>Esqueci minha senha</Text>
+      <Text style={styles.subtitle}>Digite seu email para redefinir a senha</Text>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-      
+
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -43,11 +40,14 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
       />
 
       <TouchableOpacity style={styles.resetButton} onPress={handleResetPassword}>
-        <Text style={styles.resetButtonText}>Reset Password</Text>
+        <Text style={styles.resetButtonText}>Redefinir Senha</Text>
       </TouchableOpacity>
 
       <Text style={styles.loginText}>
-        Remember your password? <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>Login</Text>
+        Lembrou a senha?{' '}
+        <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
+          Entrar
+        </Text>
       </Text>
     </View>
   );
@@ -67,16 +67,14 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: 'bold',
     color: '#000',
-    alignSelf: 'flex-start',
     marginBottom: 10,
-    marginLeft: 10,
+    alignSelf: 'flex-start',
   },
   subtitle: {
     fontSize: 16,
     color: '#888',
     marginBottom: 20,
     alignSelf: 'flex-start',
-    marginLeft: 10,
   },
   error: {
     color: 'red',

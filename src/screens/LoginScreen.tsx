@@ -1,8 +1,7 @@
-import AsyncStorage from '@react-native-community/async-storage';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { autenticarUsuario } from '../auth/authService'; // Importa o authService para autenticação
 
 type Props = {
   navigation: NativeStackNavigationProp<any, any>;
@@ -19,29 +18,13 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    try {
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+    const isAuthenticated = await autenticarUsuario(username, password); // Verifica a autenticação
 
-      if (!response.ok) {
-        setErrorMessage('Erro ao fazer login. Verifique suas credenciais.');
-        return;
-      }
-
-      const data = await response.json();
-      const token = data.token;
-
-      await AsyncStorage.setItem('token', token);
-
+    if (isAuthenticated) {
       setErrorMessage(null);
       navigation.navigate('Home');
-    } catch (error) {
-      setErrorMessage('Erro de conexão. Tente novamente mais tarde.');
+    } else {
+      setErrorMessage('Erro ao fazer login. Verifique suas credenciais.');
     }
   };
 
@@ -50,9 +33,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.title}>Login</Text>
       <Text style={styles.subtitle}>Entre para continuar</Text>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-      
+
       <View style={styles.inputContainer}>
-        <FontAwesome name="envelope" size={20} color="#0096FF" style={styles.icon} />
         <TextInput
           style={styles.input}
           placeholder="Username"
@@ -60,24 +42,25 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={setUsername}
         />
       </View>
-      
+
       <View style={styles.inputContainer}>
-        <FontAwesome name="lock" size={20} color="#0096FF" style={styles.icon} />
         <TextInput
           style={styles.input}
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry={true}
+          secureTextEntry
         />
       </View>
 
       <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
         <Text style={styles.forgotPassword}>Forgot Password?</Text>
       </TouchableOpacity>
+
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Login</Text>
       </TouchableOpacity>
+
       <Text style={styles.signupText}>
         Não tem uma conta?{' '}
         <Text style={styles.signupLink} onPress={() => navigation.navigate('Register')}>
@@ -87,8 +70,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 };
-
-const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
@@ -125,10 +106,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     paddingHorizontal: 12,
-    elevation: 1, // Add shadow for modern look
-  },
-  icon: {
-    marginRight: 12,
   },
   input: {
     flex: 1,

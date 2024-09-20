@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-
-type RootStackParamList = {
-    Login: undefined;
-    Register: undefined;
-    Home: undefined;
-    ForgotPassword: undefined;
-};
+import { registrarUsuario } from '../auth/authService'; // Importa o serviço de registro
 
 type RegisterScreenProps = {
-    navigation: NativeStackNavigationProp<RootStackParamList, 'Register'>;
+  navigation: NativeStackNavigationProp<any>;
 };
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
@@ -26,23 +19,27 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       setErrorMessage('Por favor, preencha todos os campos.');
       return;
     }
+
     if (password !== confirmPassword) {
       setErrorMessage('As senhas não coincidem.');
       return;
     }
 
-    // Implementar a lógica de registro aqui
-
-    setErrorMessage(null);
-    navigation.navigate('Home'); // Redirecionar após o registro
+    try {
+      await registrarUsuario(username, password); // Chama o serviço de registro
+      setErrorMessage(null);
+      navigation.navigate('Login'); // Redireciona para a tela de login após o registro
+    } catch (error) {
+      setErrorMessage('Erro ao registrar o usuário');
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
-      <Text style={styles.subtitle}>Create your account.</Text>
+      <Text style={styles.title}>Registrar</Text>
+      <Text style={styles.subtitle}>Crie sua conta</Text>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-      
+
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -60,22 +57,25 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
 
       <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-        <Text style={styles.registerButtonText}>Register</Text>
+        <Text style={styles.registerButtonText}>Registrar</Text>
       </TouchableOpacity>
 
       <Text style={styles.loginText}>
-        Already have an account? <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>Login</Text>
+        Já tem uma conta?{' '}
+        <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
+          Entrar
+        </Text>
       </Text>
     </View>
   );
